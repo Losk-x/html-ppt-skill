@@ -167,6 +167,8 @@ The `@media print` CSS in `assets/base.css` ensures proper output:
 - `@page{size:1280px 720px;margin:0}` — 16:9 widescreen pages
 - `.slide{page-break-after:always}` — one slide per page
 
+## Authoring rules (important)
+
 - **Always start from a template.** Don't author slides from scratch — copy the
   closest layout from `templates/single-page/` first, then replace content.
 - **Use tokens, not literal colors.** Every color, radius, shadow should come

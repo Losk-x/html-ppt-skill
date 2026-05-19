@@ -30,35 +30,50 @@ export PYTHON_OUT="$OUT_ABS"
 export PYTHON_HERE="$HERE"
 
 python3 << 'PYEOF'
-import os, re, json, glob
+import os, re, json, glob, sys
 
 abs_path = os.environ["PYTHON_ABS"]
 out_path = os.environ["PYTHON_OUT"]
 skill    = os.environ["PYTHON_HERE"]
 
-with open(abs_path) as f:
-    html = f.read()
+def read_file(path, label="file"):
+    try:
+        with open(path) as f:
+            return f.read()
+    except FileNotFoundError:
+        print(f"Error: {label} not found: {path}", file=__import__('sys').stderr)
+        sys.exit(1)
+
+html = read_file(abs_path, "Deck HTML")
 
 # Read asset files
-with open(f"{skill}/assets/base.css") as f:
-    base_css = f.read()
-with open(f"{skill}/assets/animations/animations.css") as f:
-    anim_css = f.read()
-with open(f"{skill}/assets/runtime.js") as f:
-    runtime_js = f.read()
+base_css = read_file(f"{skill}/assets/base.css", "base.css")
+fonts_css = read_file(f"{skill}/assets/fonts.css", "fonts.css")
+anim_css = read_file(f"{skill}/assets/animations/animations.css", "animations.css")
+runtime_js = read_file(f"{skill}/assets/runtime.js", "runtime.js")
 
 fx_runtime_path = f"{skill}/assets/animations/fx-runtime.js"
 fx_runtime_js = ""
 if os.path.exists(fx_runtime_path):
-    with open(fx_runtime_path) as f:
-        fx_runtime_js = f.read()
+    try:
+        with open(fx_runtime_path) as f:
+            fx_runtime_js = f.read()
+    except FileNotFoundError:
+        print(f"Warning: fx-runtime.js not found, skipping", file=sys.stderr)
 
 # Read ALL theme CSS files — inline them so no external loading is needed
 theme_data = {}
-for theme_file in sorted(glob.glob(f"{skill}/assets/themes/*.css")):
+themes_dir = f"{skill}/assets/themes"
+if not os.path.isdir(themes_dir):
+    print(f"Error: themes directory not found: {themes_dir}", file=sys.stderr)
+    sys.exit(1)
+for theme_file in sorted(glob.glob(f"{themes_dir}/*.css")):
     name = os.path.splitext(os.path.basename(theme_file))[0]
-    with open(theme_file) as f:
-        theme_data[name] = f.read()
+    try:
+        with open(theme_file) as f:
+            theme_data[name] = f.read()
+    except FileNotFoundError:
+        print(f"Warning: theme file vanished: {theme_file}", file=sys.stderr)
 
 theme_json = json.dumps(theme_data, ensure_ascii=False)
 
@@ -75,7 +90,7 @@ else:
 
 # Use the current theme's CSS in the main combined block
 active_theme_css = theme_data.get(current_theme, theme_data.get("tokyo-night", ""))
-combined_css = active_theme_css + "\n" + base_css + "\n" + anim_css
+combined_css = base_css + "\n" + active_theme_css + "\n" + anim_css
 
 # Inline runtime.js and fx-runtime.js FIRST (before removal loop)
 def inline_script(html, keyword, content):
@@ -132,18 +147,9 @@ for pat_suffix in (
     html = re.sub(full_pat, '', html, flags=re.IGNORECASE | re.DOTALL)
 
 # Insert fonts @import + theme data + combined CSS before </head>
-fonts = '''<style>
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@200;300;400;500;600;700;900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500;600;700;900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap");
-</style>'''
+fonts_block = f"<style>\n{fonts_css}\n</style>"
 theme_script = f'<script id="html-ppt-theme-data" type="application/json">{theme_json}</script>'
-inject = f"{fonts}{theme_script}<style>{combined_css}</style>\n"
+inject = f"{fonts_block}{theme_script}<style>{combined_css}</style>\n"
 html = html.replace("</head>", inject + "</head>")
 
 # Add window.__htmlPptThemeData initialization before the closing </body> or </html>
@@ -156,9 +162,13 @@ else:
 # Remove any remaining data-theme-base attribute (no longer needed)
 html = re.sub(r'\s*data-theme-base="[^"]*"', '', html)
 
-with open(out_path, "w") as f:
-    f.write(html)
-    f.write("\n")
+try:
+    with open(out_path, "w") as f:
+        f.write(html)
+        f.write("\n")
+except OSError as e:
+    print(f"Error: cannot write to {out_path}: {e}", file=sys.stderr)
+    sys.exit(1)
 
 size = os.path.getsize(out_path)
 print(f"Done: {size} bytes -> {out_path}")
