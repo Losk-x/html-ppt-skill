@@ -48,7 +48,7 @@ if ! "$CHROME" \
   --headless=new \
   --disable-gpu \
   --no-sandbox \
-  --virtual-time-budget=6000 \
+  --virtual-time-budget=10000 \
   --print-to-pdf="$OUT_ABS" \
   --window-size=1920,1080 \
   "file://$BUNDLE" >/dev/null 2>&1; then

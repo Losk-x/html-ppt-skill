@@ -86,36 +86,27 @@ def inline_script(html, keyword, content):
     )
     return pat.sub(lambda m: f"<script>{content}</script>", html)
 
-# Before inlining, patch applyTheme in runtime_js to use inlined theme data
-old_apply = '''    function applyTheme(name) {
-      let link = document.getElementById('theme-link');
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.id = 'theme-link';
-        document.head.appendChild(link);
-      }
-      link.href = themeBase + name + '.css';
-      root.setAttribute('data-theme', name);
-      const ind = document.querySelector('.theme-indicator');
-      if (ind) ind.textContent = name;
-    }'''
-
-new_apply = '''    function applyTheme(name) {
-      let style = document.getElementById('theme-style');
-      if (!style) {
-        style = document.createElement('style');
-        style.id = 'theme-style';
-        document.head.appendChild(style);
-      }
-      const data = window.__htmlPptThemeData || {};
-      style.textContent = data[name] || '';
-      root.setAttribute('data-theme', name);
-      const ind = document.querySelector('.theme-indicator');
-      if (ind) ind.textContent = name;
-    }'''
-
-runtime_js = runtime_js.replace(old_apply, new_apply)
+# Inject applyTheme override at the end of the IIFE (before })();
+# This is robust: doesn't depend on the exact formatting of applyTheme in runtime.js.
+# In strict mode, reassigning a function-scoped declaration is valid.
+override_js = '''
+  applyTheme = function(name) {
+    let style = document.getElementById('theme-style');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'theme-style';
+      document.head.appendChild(style);
+    }
+    const data = window.__htmlPptThemeData || {};
+    style.textContent = data[name] || '';
+    root.setAttribute('data-theme', name);
+    const ind = document.querySelector('.theme-indicator');
+    if (ind) ind.textContent = name;
+  };
+'''
+idx = runtime_js.rfind('})();')
+if idx >= 0:
+    runtime_js = runtime_js[:idx] + override_js + '\n' + runtime_js[idx:]
 
 html = inline_script(html, "runtime.js", runtime_js)
 if fx_runtime_js:
@@ -167,6 +158,7 @@ html = re.sub(r'\s*data-theme-base="[^"]*"', '', html)
 
 with open(out_path, "w") as f:
     f.write(html)
+    f.write("\n")
 
 size = os.path.getsize(out_path)
 print(f"Done: {size} bytes -> {out_path}")
