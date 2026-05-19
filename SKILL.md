@@ -133,8 +133,9 @@ Only after those are clear, scaffold the deck and start writing.
 ### `scripts/bundle.sh` — Bundle a deck into a self-contained HTML file
 
 Inlines all CSS (theme, base, animations) and JS (runtime.js) directly into the
-deck HTML. The output file has zero external dependencies — it works offline,
-can be emailed, and includes proper `data-theme-base` for live theme switching.
+deck HTML. The output file has no external CSS/JS file references — it works offline,
+can be emailed, and includes proper `data-theme-base` for live theme switching
+(theme CSS files are loaded on demand from the skill directory via `<link>`).
 
 ```bash
 ./scripts/bundle.sh examples/demo-deck/index.html              # -> examples/demo-deck/index.bundle.html

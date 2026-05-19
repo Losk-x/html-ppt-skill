@@ -44,13 +44,22 @@ trap cleanup EXIT
 "$HERE/scripts/bundle.sh" "$ABS_FILE" "$BUNDLE"
 
 # Step 2: export via headless Chrome
-"$CHROME" \
+if ! "$CHROME" \
   --headless=new \
   --disable-gpu \
   --no-sandbox \
   --virtual-time-budget=6000 \
   --print-to-pdf="$OUT_ABS" \
   --window-size=1920,1080 \
-  "file://$BUNDLE" >/dev/null 2>&1
+  "file://$BUNDLE" >/dev/null 2>&1; then
+  echo "error: Chrome exited with non-zero status" >&2
+  exit 1
+fi
+
+# Step 3: verify PDF was produced
+if [[ ! -f "$OUT_ABS" || ! -s "$OUT_ABS" ]]; then
+  echo "error: PDF output is empty or missing: $OUT_ABS" >&2
+  exit 1
+fi
 
 echo "✔ exported PDF: $OUT_ABS"

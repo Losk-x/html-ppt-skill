@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # html-ppt :: bundle.sh — bundle a deck into a self-contained single HTML file
-#   Inlines all CSS (theme, base, animations) and JS (runtime.js).
+#   Inlines all CSS (theme, base, animations) and JS (runtime.js, fx-runtime.js).
 #   Fixes @media print for PDF export.
 #   Preserves data-theme-base for live theme switching.
 #
@@ -47,14 +47,22 @@ with open(f"{skill}/assets/animations/animations.css") as f:
 with open(f"{skill}/assets/runtime.js") as f:
     runtime_js = f.read()
 
+fx_runtime_path = f"{skill}/assets/animations/fx-runtime.js"
+fx_runtime_js = ""
+if os.path.exists(fx_runtime_path):
+    with open(fx_runtime_path) as f:
+        fx_runtime_js = f.read()
+
 # Read current theme CSS (detect from #theme-link href, then fall back)
 def read_theme_css():
-    m = re.search(r'<link[^>]*id="theme-link"[^>]*href="([^"]*)"', html)
+    m = re.search(
+        r'''<link[^>]*id=["']theme-link["'][^>]*href=["']([^"']+)["']''',
+        html
+    )
     if not m:
         with open(f"{skill}/assets/themes/tokyo-night.css") as f:
             return f.read()
     theme_href = m.group(1)
-    # Try resolving relative to deck dir first
     theme_path = os.path.normpath(os.path.join(os.path.dirname(abs_path), theme_href))
     for candidate in (theme_path, f"{skill}/assets/themes/{os.path.basename(theme_href)}"):
         try:
@@ -62,27 +70,42 @@ def read_theme_css():
                 return f.read()
         except FileNotFoundError:
             continue
-    # Ultimate fallback
     with open(f"{skill}/assets/themes/tokyo-night.css") as f:
         return f.read()
 
 theme_css = read_theme_css()
 combined_css = theme_css + "\n" + base_css + "\n" + anim_css
 
-# Remove external CSS/JS links (handle both " and ' quote styles)
-QUOT_CHARS = '["\']'
+# Inline runtime.js and fx-runtime.js FIRST (before removal loop)
+def inline_script(html, keyword, content):
+    pat = re.compile(
+        rf'(<script\s+[^>]*src=(["\'])[^"\'"]*{re.escape(keyword)}[^"\'"]*\2[^>]*>)'
+        rf'(.*?)</script>',
+        re.IGNORECASE | re.DOTALL
+    )
+    return pat.sub(lambda m: f"<script>{content}</script>", html)
+
+html = inline_script(html, "runtime.js", runtime_js)
+if fx_runtime_js:
+    html = inline_script(html, "fx-runtime.js", fx_runtime_js)
+
+# Remove remaining external CSS/JS link/script tags (handle both " and ' quote styles)
+QUOT = """["']"""
 
 for pat_suffix in (
     'fonts\\.css',
     'base\\.css',
     'themes/[^"\'"]*\\.css',
     'animations\\.css',
-    'runtime\\.js[^>]*>.*?</script>',
-    'fx-runtime\\.js[^>]*>.*?</script>',
 ):
-    prefix = rf'<link[^>]*href={QUOT_CHARS}[^"\']*{pat_suffix}'
-    is_script = 'runtime' in pat_suffix or 'fx-runtime' in pat_suffix
-    full_pat = prefix + rf'{QUOT_CHARS}[^>]*>' if not is_script else prefix
+    full_pat = rf'<link[^>]*href={QUOT}[^"\']*{pat_suffix}{QUOT}[^>]*>'
+    html = re.sub(full_pat, '', html, flags=re.IGNORECASE)
+
+for pat_suffix in (
+    'runtime\\.js',
+    'fx-runtime\\.js',
+):
+    full_pat = rf'<script[^>]*src={QUOT}[^"\']*{pat_suffix}{QUOT}[^>]*>.*?</script>'
     html = re.sub(full_pat, '', html, flags=re.IGNORECASE | re.DOTALL)
 
 # Insert fonts @import before </head>
@@ -98,17 +121,6 @@ fonts = '''<style>
 </style>'''
 html = html.replace("</head>", f"{fonts}<style>{combined_css}</style>\n</head>")
 
-# Inline runtime.js — find closing </script> after any runtime.js src
-def inline_script(html, keyword):
-    pat = re.compile(
-        rf'(<script\s+[^>]*src=(["\'])[^"\'"]*{re.escape(keyword)}[^"\'"]*\2[^>]*>)'
-        rf'(.*?)</script>',
-        re.IGNORECASE | re.DOTALL
-    )
-    return pat.sub(lambda m: f"<script>{runtime_js}</script>", html)
-
-html = inline_script(html, "runtime.js")
-
 # Set data-theme-base to correct relative path from output to skill themes dir
 out_dir = os.path.dirname(out_path)
 theme_dir = os.path.join(skill, "assets", "themes")
@@ -119,7 +131,6 @@ body_pat = re.compile(r'(<body\b[^>]*)(>)', re.IGNORECASE)
 def set_theme_base(m):
     prefix = m.group(1)
     end = m.group(2)
-    # Strip any existing data-theme-base within the <body> tag
     cleaned = re.sub(r'\s*data-theme-base="[^"]*"', '', prefix)
     return f'{cleaned} data-theme-base="{rel}/"{end}'
 
