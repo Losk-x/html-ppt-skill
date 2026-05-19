@@ -123,11 +123,10 @@ Only after those are clear, scaffold the deck and start writing.
    ./scripts/render.sh templates/theme-showcase.html       # one shot
    ./scripts/render.sh examples/my-talk/index.html 12      # 12 slides
    ```
-7. **Export to PDF.**
+7. **Export to PDF.** (see [Bundle & Export PDF](#bundle--export-pdf) for details)
    ```bash
    ./scripts/export-pdf.sh examples/my-talk/index.html my-talk.pdf
    ```
-   One page per slide, 16:9 widescreen, all themes and fonts preserved.
 
 ## Bundle & Export PDF
 
@@ -246,20 +245,6 @@ capture, runtime.js exposes `#/N` deep-links, and render.sh iterates 1..N.
 ./scripts/render.sh templates/single-page/kpi-grid.html        # single page
 ./scripts/render.sh examples/demo-deck/index.html 8 out-dir    # 8 slides, custom dir
 ```
-
-## Export to PDF
-
-`scripts/export-pdf.sh` exports any deck to a multi-page PDF. Each slide
-becomes one 16:9 widescreen page, with all themes, fonts, and animations
-preserved.
-
-```bash
-./scripts/export-pdf.sh examples/demo-deck/index.html          # -> examples/demo-deck/index.pdf
-./scripts/export-pdf.sh examples/demo-deck/index.html out.pdf  # custom path
-```
-
-The deck is automatically bundled first (via `bundle.sh`) to inline all
-assets, ensuring the PDF renders correctly regardless of relative paths.
 
 ## Keyboard cheat sheet
 

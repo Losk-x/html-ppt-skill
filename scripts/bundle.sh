@@ -21,16 +21,23 @@ fi
 
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 ABS="$(cd "$(dirname "$FILE")" && pwd)/$(basename "$FILE")"
-DIR="$(dirname "$FILE")"
 OUT="${OUT:-${FILE%.*}.bundle.html}"
+OUT_ABS="$(cd "$(dirname "$OUT")" && pwd)/$(basename "$OUT")"
 
-python3 << PYEOF
+# Pass paths via env vars to avoid bash interpolation into the Python heredoc
+export PYTHON_ABS="$ABS"
+export PYTHON_OUT="$OUT_ABS"
+export PYTHON_HERE="$HERE"
+
+python3 << 'PYEOF'
 import os, re
 
-with open("$ABS") as f:
-    html = f.read()
+abs_path = os.environ["PYTHON_ABS"]
+out_path = os.environ["PYTHON_OUT"]
+skill    = os.environ["PYTHON_HERE"]
 
-skill = "$HERE"
+with open(abs_path) as f:
+    html = f.read()
 
 # Read asset files
 with open(f"{skill}/assets/base.css") as f:
@@ -40,32 +47,43 @@ with open(f"{skill}/assets/animations/animations.css") as f:
 with open(f"{skill}/assets/runtime.js") as f:
     runtime_js = f.read()
 
-# Read current theme CSS (from #theme-link or fallback to tokyo-night)
-theme_match = re.search(r'<link[^>]*id="theme-link"[^>]*href="([^"]*)"', html)
-if theme_match:
-    theme_href = theme_match.group(1)
-    theme_path = os.path.normpath(os.path.join(os.path.dirname("$ABS"), theme_href))
-    try:
-        with open(theme_path) as f:
-            theme_css = f.read()
-    except FileNotFoundError:
-        # Fall back to the skill's theme dir
-        theme_name = os.path.splitext(os.path.basename(theme_href))[0]
-        with open(f"{skill}/assets/themes/{theme_name}.css") as f:
-            theme_css = f.read()
-else:
+# Read current theme CSS (detect from #theme-link href, then fall back)
+def read_theme_css():
+    m = re.search(r'<link[^>]*id="theme-link"[^>]*href="([^"]*)"', html)
+    if not m:
+        with open(f"{skill}/assets/themes/tokyo-night.css") as f:
+            return f.read()
+    theme_href = m.group(1)
+    # Try resolving relative to deck dir first
+    theme_path = os.path.normpath(os.path.join(os.path.dirname(abs_path), theme_href))
+    for candidate in (theme_path, f"{skill}/assets/themes/{os.path.basename(theme_href)}"):
+        try:
+            with open(candidate) as f:
+                return f.read()
+        except FileNotFoundError:
+            continue
+    # Ultimate fallback
     with open(f"{skill}/assets/themes/tokyo-night.css") as f:
-        theme_css = f.read()
+        return f.read()
 
+theme_css = read_theme_css()
 combined_css = theme_css + "\n" + base_css + "\n" + anim_css
 
-# Remove external CSS/JS links
-html = re.sub(r'<link[^>]*href="[^"]*fonts\.css"[^>]*>', '', html)
-html = re.sub(r'<link[^>]*href="[^"]*base\.css"[^>]*>', '', html)
-html = re.sub(r'<link[^>]*href="[^"]*themes/[^"]*\.css"[^>]*>', '', html)
-html = re.sub(r'<link[^>]*href="[^"]*animations\.css"[^>]*>', '', html)
-html = re.sub(r'<script[^>]*src="[^"]*runtime\.js"[^>]*>.*?</script>', '', html)
-html = re.sub(r'<script[^>]*src="[^"]*fx-runtime\.js"[^>]*>.*?</script>', '', html)
+# Remove external CSS/JS links (handle both " and ' quote styles)
+QUOT_CHARS = '["\']'
+
+for pat_suffix in (
+    'fonts\\.css',
+    'base\\.css',
+    'themes/[^"\'"]*\\.css',
+    'animations\\.css',
+    'runtime\\.js[^>]*>.*?</script>',
+    'fx-runtime\\.js[^>]*>.*?</script>',
+):
+    prefix = rf'<link[^>]*href={QUOT_CHARS}[^"\']*{pat_suffix}'
+    is_script = 'runtime' in pat_suffix or 'fx-runtime' in pat_suffix
+    full_pat = prefix + rf'{QUOT_CHARS}[^>]*>' if not is_script else prefix
+    html = re.sub(full_pat, '', html, flags=re.IGNORECASE | re.DOTALL)
 
 # Insert fonts @import before </head>
 fonts = '''<style>
@@ -80,36 +98,36 @@ fonts = '''<style>
 </style>'''
 html = html.replace("</head>", f"{fonts}<style>{combined_css}</style>\n</head>")
 
-# Inline runtime.js
-if '<script src=' in html:
-    html = html.replace('<script src="', '<script data-src="')
-marker = '<script data-src="'
-idx = html.find(marker)
-while idx >= 0:
-    end = html.find('>', idx)
-    tag = html[idx:end+1]
-    if 'runtime.js' in tag:
-        before = html[:idx]
-        after = html[end+1:]
-        html = before + f"<script>{runtime_js}</script>" + after
-        break
-    idx = html.find(marker, end)
-html = html.replace('<script data-src="', '<script src="')
+# Inline runtime.js — find closing </script> after any runtime.js src
+def inline_script(html, keyword):
+    pat = re.compile(
+        rf'(<script\s+[^>]*src=(["\'])[^"\'"]*{re.escape(keyword)}[^"\'"]*\2[^>]*>)'
+        rf'(.*?)</script>',
+        re.IGNORECASE | re.DOTALL
+    )
+    return pat.sub(lambda m: f"<script>{runtime_js}</script>", html)
+
+html = inline_script(html, "runtime.js")
 
 # Set data-theme-base to correct relative path from output to skill themes dir
-out_dir = os.path.dirname(os.path.abspath("$OUT"))
+out_dir = os.path.dirname(out_path)
 theme_dir = os.path.join(skill, "assets", "themes")
 rel = os.path.relpath(theme_dir, out_dir)
 
 body_pat = re.compile(r'(<body\b[^>]*)(>)', re.IGNORECASE)
-if body_pat.search(html):
-    # Remove existing data-theme-base if present, then re-add
-    html = re.sub(r'\s*data-theme-base="[^"]*"', '', html)
-    html = body_pat.sub(r'\1 data-theme-base="' + rel + '/"\2', html)
 
-with open("$OUT", "w") as f:
+def set_theme_base(m):
+    prefix = m.group(1)
+    end = m.group(2)
+    # Strip any existing data-theme-base within the <body> tag
+    cleaned = re.sub(r'\s*data-theme-base="[^"]*"', '', prefix)
+    return f'{cleaned} data-theme-base="{rel}/"{end}'
+
+html = body_pat.sub(set_theme_base, html)
+
+with open(out_path, "w") as f:
     f.write(html)
 
-size = os.path.getsize("$OUT")
-print(f"Done: {size} bytes -> $OUT")
+size = os.path.getsize(out_path)
+print(f"Done: {size} bytes -> {out_path}")
 PYEOF

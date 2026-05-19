@@ -29,13 +29,19 @@ if [[ ! -x "$CHROME" ]]; then
   exit 1
 fi
 
-OUT="${OUT:-${FILE%.*}.pdf}"
+# Resolve to absolute paths
+ABS_FILE="$(cd "$(dirname "$FILE")" && pwd)/$(basename "$FILE")"
+OUT="${OUT:-${ABS_FILE%.*}.pdf}"
+OUT_ABS="$(cd "$(dirname "$OUT")" && pwd)/$(basename "$OUT")"
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 
+# Temp bundle — place alongside the input file so relative paths resolve
+BUNDLE="${ABS_FILE%.*}.bundle.pdf-tmp.html"
+cleanup() { rm -f "$BUNDLE"; }
+trap cleanup EXIT
+
 # Step 1: bundle into self-contained HTML
-BUNDLE="${FILE%.*}.bundle.pdf-tmp.html"
-"$HERE/scripts/bundle.sh" "$FILE" "$BUNDLE"
-BUNDLE_ABS="$(cd "$(dirname "$BUNDLE")" && pwd)/$(basename "$BUNDLE")"
+"$HERE/scripts/bundle.sh" "$ABS_FILE" "$BUNDLE"
 
 # Step 2: export via headless Chrome
 "$CHROME" \
@@ -43,11 +49,8 @@ BUNDLE_ABS="$(cd "$(dirname "$BUNDLE")" && pwd)/$(basename "$BUNDLE")"
   --disable-gpu \
   --no-sandbox \
   --virtual-time-budget=6000 \
-  --print-to-pdf="$OUT" \
+  --print-to-pdf="$OUT_ABS" \
   --window-size=1920,1080 \
-  "file://$BUNDLE_ABS" >/dev/null 2>&1
+  "file://$BUNDLE" >/dev/null 2>&1
 
-# Step 3: clean up
-rm -f "$BUNDLE"
-
-echo "✔ exported PDF: $OUT"
+echo "✔ exported PDF: $OUT_ABS"
