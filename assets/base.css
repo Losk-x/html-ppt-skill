@@ -148,5 +148,6 @@ h4,.h4{font-size:22px;line-height:1.3;font-weight:600;margin:0 0 8px}
   .deck{height:auto!important;overflow:visible!important}
   @page{size:1280px 720px;margin:0}
   .slide{position:relative;opacity:1!important;transform:none!important;page-break-after:always;page-break-inside:avoid;height:100vh;width:100vw}
+  .slide:last-child{page-break-after:auto}
   .deck-header,.deck-footer,.progress-bar,.notes-overlay,.overview{display:none!important}
 }

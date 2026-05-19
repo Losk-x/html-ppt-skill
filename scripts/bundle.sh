@@ -122,6 +122,9 @@ override_js = '''
 runtime_js = runtime_js.rstrip()
 if runtime_js.endswith('})();'):
     runtime_js = runtime_js[:-5] + override_js + '\n})();'
+else:
+    print("Error: runtime.js does not end with '})();' — cannot inject applyTheme override", file=sys.stderr)
+    sys.exit(1)
 
 html = inline_script(html, "runtime.js", runtime_js)
 if fx_runtime_js:
@@ -146,10 +149,9 @@ for pat_suffix in (
     full_pat = rf'<script[^>]*src={QUOT}[^"\']*{pat_suffix}{QUOT}[^>]*>.*?</script>'
     html = re.sub(full_pat, '', html, flags=re.IGNORECASE | re.DOTALL)
 
-# Insert fonts @import + theme data + combined CSS before </head>
+# Insert fonts @import + combined CSS before </head>
 fonts_block = f"<style>\n{fonts_css}\n</style>"
-theme_script = f'<script id="html-ppt-theme-data" type="application/json">{theme_json}</script>'
-inject = f"{fonts_block}{theme_script}<style>{combined_css}</style>\n"
+inject = f"{fonts_block}<style>{combined_css}</style>\n"
 html = html.replace("</head>", inject + "</head>")
 
 # Add window.__htmlPptThemeData initialization before the closing </body> or </html>

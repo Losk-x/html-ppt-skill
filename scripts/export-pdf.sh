@@ -44,6 +44,7 @@ trap cleanup EXIT
 "$HERE/scripts/bundle.sh" "$ABS_FILE" "$BUNDLE"
 
 # Step 2: export via headless Chrome
+FILE_URL="file://$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], safe='/:@'))" "$BUNDLE")"
 if ! "$CHROME" \
   --headless=new \
   --disable-gpu \
@@ -52,7 +53,7 @@ if ! "$CHROME" \
   --virtual-time-budget=10000 \
   --print-to-pdf="$OUT_ABS" \
   --window-size=1920,1080 \
-  "file://$BUNDLE" >/dev/null 2>&1; then
+  "$FILE_URL" >/dev/null 2>&1; then
   echo "error: Chrome exited with non-zero status" >&2
   exit 1
 fi
