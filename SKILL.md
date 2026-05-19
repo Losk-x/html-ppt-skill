@@ -134,8 +134,8 @@ Only after those are clear, scaffold the deck and start writing.
 
 Inlines all CSS (theme, base, animations) and JS (runtime.js) directly into the
 deck HTML. The output file has no external CSS/JS file references — it works offline,
-can be emailed, and includes proper `data-theme-base` for live theme switching
-(theme CSS files are loaded on demand from the skill directory via `<link>`).
+can be emailed, and includes all 36 themes inlined for live theme switching
+(via `window.__htmlPptThemeData`, no external file loading needed).
 
 ```bash
 ./scripts/bundle.sh examples/demo-deck/index.html              # -> examples/demo-deck/index.bundle.html

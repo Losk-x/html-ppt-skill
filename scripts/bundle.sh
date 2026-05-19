@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # html-ppt :: bundle.sh — bundle a deck into a self-contained single HTML file
-#   Inlines all CSS (theme, base, animations) and JS (runtime.js, fx-runtime.js).
+#   Inlines ALL themes, base CSS, animations, and JS (runtime.js, fx-runtime.js).
+#   Theme switching uses inlined data — no external files needed.
 #   Fixes @media print for PDF export.
-#   Preserves data-theme-base for live theme switching.
 #
 # Usage:
 #   bundle.sh <deck.html> [output.html]
@@ -30,7 +30,7 @@ export PYTHON_OUT="$OUT_ABS"
 export PYTHON_HERE="$HERE"
 
 python3 << 'PYEOF'
-import os, re
+import os, re, json, glob
 
 abs_path = os.environ["PYTHON_ABS"]
 out_path = os.environ["PYTHON_OUT"]
@@ -53,28 +53,29 @@ if os.path.exists(fx_runtime_path):
     with open(fx_runtime_path) as f:
         fx_runtime_js = f.read()
 
-# Read current theme CSS (detect from #theme-link href, then fall back)
-def read_theme_css():
-    m = re.search(
-        r'''<link[^>]*id=["']theme-link["'][^>]*href=["']([^"']+)["']''',
-        html
-    )
-    if not m:
-        with open(f"{skill}/assets/themes/tokyo-night.css") as f:
-            return f.read()
-    theme_href = m.group(1)
-    theme_path = os.path.normpath(os.path.join(os.path.dirname(abs_path), theme_href))
-    for candidate in (theme_path, f"{skill}/assets/themes/{os.path.basename(theme_href)}"):
-        try:
-            with open(candidate) as f:
-                return f.read()
-        except FileNotFoundError:
-            continue
-    with open(f"{skill}/assets/themes/tokyo-night.css") as f:
-        return f.read()
+# Read ALL theme CSS files — inline them so no external loading is needed
+theme_data = {}
+for theme_file in sorted(glob.glob(f"{skill}/assets/themes/*.css")):
+    name = os.path.splitext(os.path.basename(theme_file))[0]
+    with open(theme_file) as f:
+        theme_data[name] = f.read()
 
-theme_css = read_theme_css()
-combined_css = theme_css + "\n" + base_css + "\n" + anim_css
+theme_json = json.dumps(theme_data, ensure_ascii=False)
+
+# Determine current active theme from the deck HTML
+current_theme_match = re.search(
+    r'''<link[^>]*id=["']theme-link["'][^>]*href=["']([^"']+)["']''',
+    html
+)
+if current_theme_match:
+    current_theme = os.path.splitext(os.path.basename(current_theme_match.group(1)))[0]
+else:
+    m = re.search(r'data-theme\s*=\s*"([^"]+)"', html)
+    current_theme = m.group(1) if m else "tokyo-night"
+
+# Use the current theme's CSS in the main combined block
+active_theme_css = theme_data.get(current_theme, theme_data.get("tokyo-night", ""))
+combined_css = active_theme_css + "\n" + base_css + "\n" + anim_css
 
 # Inline runtime.js and fx-runtime.js FIRST (before removal loop)
 def inline_script(html, keyword, content):
@@ -85,11 +86,42 @@ def inline_script(html, keyword, content):
     )
     return pat.sub(lambda m: f"<script>{content}</script>", html)
 
+# Before inlining, patch applyTheme in runtime_js to use inlined theme data
+old_apply = '''    function applyTheme(name) {
+      let link = document.getElementById('theme-link');
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.id = 'theme-link';
+        document.head.appendChild(link);
+      }
+      link.href = themeBase + name + '.css';
+      root.setAttribute('data-theme', name);
+      const ind = document.querySelector('.theme-indicator');
+      if (ind) ind.textContent = name;
+    }'''
+
+new_apply = '''    function applyTheme(name) {
+      let style = document.getElementById('theme-style');
+      if (!style) {
+        style = document.createElement('style');
+        style.id = 'theme-style';
+        document.head.appendChild(style);
+      }
+      const data = window.__htmlPptThemeData || {};
+      style.textContent = data[name] || '';
+      root.setAttribute('data-theme', name);
+      const ind = document.querySelector('.theme-indicator');
+      if (ind) ind.textContent = name;
+    }'''
+
+runtime_js = runtime_js.replace(old_apply, new_apply)
+
 html = inline_script(html, "runtime.js", runtime_js)
 if fx_runtime_js:
     html = inline_script(html, "fx-runtime.js", fx_runtime_js)
 
-# Remove remaining external CSS/JS link/script tags (handle both " and ' quote styles)
+# Remove remaining external CSS/JS link/script tags
 QUOT = """["']"""
 
 for pat_suffix in (
@@ -108,33 +140,30 @@ for pat_suffix in (
     full_pat = rf'<script[^>]*src={QUOT}[^"\']*{pat_suffix}{QUOT}[^>]*>.*?</script>'
     html = re.sub(full_pat, '', html, flags=re.IGNORECASE | re.DOTALL)
 
-# Insert fonts @import before </head>
+# Insert fonts @import + theme data + combined CSS before </head>
 fonts = '''<style>
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@200;300;400;500;600;700;900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500;600;700;900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap");
 </style>'''
-html = html.replace("</head>", f"{fonts}<style>{combined_css}</style>\n</head>")
+theme_script = f'<script id="html-ppt-theme-data" type="application/json">{theme_json}</script>'
+inject = f"{fonts}{theme_script}<style>{combined_css}</style>\n"
+html = html.replace("</head>", inject + "</head>")
 
-# Set data-theme-base to correct relative path from output to skill themes dir
-out_dir = os.path.dirname(out_path)
-theme_dir = os.path.join(skill, "assets", "themes")
-rel = os.path.relpath(theme_dir, out_dir)
+# Add window.__htmlPptThemeData initialization before the closing </body> or </html>
+boot_script = f'<script>window.__htmlPptThemeData={theme_json};</script>'
+if "</body>" in html:
+    html = html.replace("</body>", boot_script + "\n</body>")
+else:
+    html = html.replace("</html>", boot_script + "\n</html>")
 
-body_pat = re.compile(r'(<body\b[^>]*)(>)', re.IGNORECASE)
-
-def set_theme_base(m):
-    prefix = m.group(1)
-    end = m.group(2)
-    cleaned = re.sub(r'\s*data-theme-base="[^"]*"', '', prefix)
-    return f'{cleaned} data-theme-base="{rel}/"{end}'
-
-html = body_pat.sub(set_theme_base, html)
+# Remove any remaining data-theme-base attribute (no longer needed)
+html = re.sub(r'\s*data-theme-base="[^"]*"', '', html)
 
 with open(out_path, "w") as f:
     f.write(html)
