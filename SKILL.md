@@ -133,9 +133,10 @@ Only after those are clear, scaffold the deck and start writing.
 ### `scripts/bundle.sh` — Bundle a deck into a self-contained HTML file
 
 Inlines all CSS (theme, base, animations) and JS (runtime.js) directly into the
-deck HTML. The output file has no external CSS/JS file references — it works offline,
-can be emailed, and includes all 36 themes inlined for live theme switching
-(via `window.__htmlPptThemeData`, no external file loading needed).
+deck HTML. The output file has no local file dependency — it has no external CSS/JS
+file references, can be emailed, and includes all 36 themes inlined for live theme
+switching (via `window.__htmlPptThemeData`, no external file loading needed). Google
+Fonts are loaded from the web, so text will render in fallback fonts offline.
 
 ```bash
 ./scripts/bundle.sh examples/demo-deck/index.html              # -> examples/demo-deck/index.bundle.html

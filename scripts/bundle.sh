@@ -41,7 +41,7 @@ def read_file(path, label="file"):
         with open(path) as f:
             return f.read()
     except FileNotFoundError:
-        print(f"Error: {label} not found: {path}", file=__import__('sys').stderr)
+        print(f"Error: {label} not found: {path}", file=sys.stderr)
         sys.exit(1)
 
 html = read_file(abs_path, "Deck HTML")
@@ -101,9 +101,9 @@ def inline_script(html, keyword, content):
     )
     return pat.sub(lambda m: f"<script>{content}</script>", html)
 
-# Inject applyTheme override at the end of the IIFE (before })();
-# This is robust: doesn't depend on the exact formatting of applyTheme in runtime.js.
-# In strict mode, reassigning a function-scoped declaration is valid.
+# Inject applyTheme override at the end of the IIFE.
+# Strip trailing whitespace then verify the file ends with })(); before injecting.
+# This is more robust than rfind() — avoids matching })(); inside template literals.
 override_js = '''
   applyTheme = function(name) {
     let style = document.getElementById('theme-style');
@@ -119,9 +119,9 @@ override_js = '''
     if (ind) ind.textContent = name;
   };
 '''
-idx = runtime_js.rfind('})();')
-if idx >= 0:
-    runtime_js = runtime_js[:idx] + override_js + '\n' + runtime_js[idx:]
+runtime_js = runtime_js.rstrip()
+if runtime_js.endswith('})();'):
+    runtime_js = runtime_js[:-5] + override_js + '\n})();'
 
 html = inline_script(html, "runtime.js", runtime_js)
 if fx_runtime_js:

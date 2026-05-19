@@ -48,6 +48,7 @@ if ! "$CHROME" \
   --headless=new \
   --disable-gpu \
   --no-sandbox \
+  --no-pdf-header-footer \
   --virtual-time-budget=10000 \
   --print-to-pdf="$OUT_ABS" \
   --window-size=1920,1080 \
