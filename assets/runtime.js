@@ -956,5 +956,6 @@
     window.addEventListener('hashchange', fromHash);
     fromHash();
     go(idx);
+    /* @bundle-inject-point */
   });
 })();

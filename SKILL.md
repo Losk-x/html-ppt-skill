@@ -28,6 +28,8 @@ One command, no build. Pure static HTML/CSS/JS with only CDN webfonts.
 - **FX runtime** (`assets/animations/fx-runtime.js`) — auto-inits `[data-fx]` on slide enter, cleans up on leave
 - **Showcase decks** for themes / layouts / animations / full-decks gallery
 - **Headless Chrome render script** for PNG export
+- **Bundle script** (`scripts/bundle.sh`) — bundle any deck into a self-contained single HTML file with all CSS/JS inlined
+- **PDF export script** (`scripts/export-pdf.sh`) — export any deck to a multi-page PDF (16:9 widescreen, one slide per page) via headless Chrome
 
 ## When to use
 
@@ -121,6 +123,50 @@ Only after those are clear, scaffold the deck and start writing.
    ./scripts/render.sh templates/theme-showcase.html       # one shot
    ./scripts/render.sh examples/my-talk/index.html 12      # 12 slides
    ```
+7. **Export to PDF.** (see [Bundle & Export PDF](#bundle--export-pdf) for details)
+   ```bash
+   ./scripts/export-pdf.sh examples/my-talk/index.html my-talk.pdf
+   ```
+
+## Bundle & Export PDF
+
+### `scripts/bundle.sh` — Bundle a deck into a self-contained HTML file
+
+Inlines all CSS (theme, base, animations) and JS (runtime.js) directly into the
+deck HTML. The output file has no local file dependency — it has no external CSS/JS
+file references, can be emailed, and includes all 36 themes inlined for live theme
+switching (via `window.__htmlPptThemeData`, no external file loading needed). Google
+Fonts are loaded from the web, so text will render in fallback fonts offline.
+
+```bash
+./scripts/bundle.sh examples/demo-deck/index.html              # -> examples/demo-deck/index.bundle.html
+./scripts/bundle.sh examples/demo-deck/index.html out.html     # custom output path
+```
+
+**When to use:** sharing a deck as a single file, emailing, embedding in a
+wiki/Notion, or preparing for PDF export.
+
+### `scripts/export-pdf.sh` — Export a deck to PDF
+
+Uses headless Chrome to render each slide as one 16:9 PDF page. The deck is
+automatically bundled first (via bundle.sh) to avoid relative path issues.
+
+```bash
+./scripts/export-pdf.sh examples/demo-deck/index.html          # -> examples/demo-deck/index.pdf
+./scripts/export-pdf.sh examples/demo-deck/index.html out.pdf  # custom output path
+```
+
+**Requirements:** Google Chrome at `/Applications/Google Chrome.app` (macOS).
+
+**How it works:**
+1. `bundle.sh` inlines all CSS/JS into a temporary self-contained HTML file
+2. Headless Chrome renders it to PDF with `--print-to-pdf`
+3. The temporary bundle is cleaned up
+
+The `@media print` CSS in `assets/base.css` ensures proper output:
+- `.deck{height:auto;overflow:visible}` — prevents slide clipping
+- `@page{size:1280px 720px;margin:0}` — 16:9 widescreen pages
+- `.slide{page-break-after:always}` — one slide per page
 
 ## Authoring rules (important)
 
@@ -187,7 +233,9 @@ html-ppt/
 │   └── single-page/*.html         (31 layout files with demo data)
 ├── scripts/
 │   ├── new-deck.sh                (scaffold a deck from deck.html)
-│   └── render.sh                  (headless Chrome → PNG)
+│   ├── render.sh                  (headless Chrome → PNG)
+│   ├── bundle.sh                  (bundle deck → self-contained HTML)
+│   └── export-pdf.sh              (headless Chrome → PDF)
 └── examples/demo-deck/            (complete working deck)
 ```
 
@@ -221,3 +269,8 @@ Esc                                     close all overlays
 ## License & author
 
 MIT. Copyright (c) 2026 lewis &lt;sudolewis@gmail.com&gt;.
+
+## See also
+
+- [scripts/bundle.sh](scripts/bundle.sh) — bundle a deck into a self-contained HTML file
+- [scripts/export-pdf.sh](scripts/export-pdf.sh) — export a deck to PDF (16:9, one slide per page)
