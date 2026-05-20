@@ -35,15 +35,15 @@ OUT="${OUT:-${ABS_FILE%.*}.pdf}"
 OUT_ABS="$(cd "$(dirname "$OUT")" && pwd)/$(basename "$OUT")"
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 
-# Temp bundle — place alongside the input file so relative paths resolve
-BUNDLE="${ABS_FILE%.*}.bundle.pdf-tmp.html"
+# Temp bundle — use mktemp to avoid race conditions on concurrent runs
+BUNDLE="$(mktemp /tmp/html-ppt-bundle.XXXXXX.html)"
 cleanup() { rm -f "$BUNDLE"; }
 trap cleanup EXIT
 
 # Step 1: bundle into self-contained HTML
 "$HERE/scripts/bundle.sh" "$ABS_FILE" "$BUNDLE"
 
-# Step 2: export via headless Chrome
+# Step 2: export via headless Chrome (stderr passes through for diagnostics)
 FILE_URL="file://$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], safe='/:@'))" "$BUNDLE")"
 if ! "$CHROME" \
   --headless=new \
@@ -53,7 +53,7 @@ if ! "$CHROME" \
   --virtual-time-budget=10000 \
   --print-to-pdf="$OUT_ABS" \
   --window-size=1920,1080 \
-  "$FILE_URL" >/dev/null 2>&1; then
+  "$FILE_URL" >/dev/null; then
   echo "error: Chrome exited with non-zero status" >&2
   exit 1
 fi

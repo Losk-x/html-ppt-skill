@@ -101,29 +101,29 @@ def inline_script(html, keyword, content):
     )
     return pat.sub(lambda m: f"<script>{content}</script>", html)
 
-# Inject applyTheme override at the end of the IIFE.
-# Strip trailing whitespace then verify the file ends with })(); before injecting.
-# This is more robust than rfind() — avoids matching })(); inside template literals.
+# Inject applyTheme override inside the ready() callback, right after the final
+# go(idx); call and before the closing });. This ensures root and applyTheme
+# are in scope. go(idx); is unique — it only appears at the initialization call.
 override_js = '''
-  applyTheme = function(name) {
-    let style = document.getElementById('theme-style');
-    if (!style) {
-      style = document.createElement('style');
-      style.id = 'theme-style';
-      document.head.appendChild(style);
-    }
-    const data = window.__htmlPptThemeData || {};
-    style.textContent = data[name] || '';
-    root.setAttribute('data-theme', name);
-    const ind = document.querySelector('.theme-indicator');
-    if (ind) ind.textContent = name;
-  };
-'''
-runtime_js = runtime_js.rstrip()
-if runtime_js.endswith('})();'):
-    runtime_js = runtime_js[:-5] + override_js + '\n})();'
+    applyTheme = function(name) {
+      let style = document.getElementById('theme-style');
+      if (!style) {
+        style = document.createElement('style');
+        style.id = 'theme-style';
+        document.head.appendChild(style);
+      }
+      const data = window.__htmlPptThemeData || {};
+      style.textContent = data[name] || '';
+      root.setAttribute('data-theme', name);
+      const ind = document.querySelector('.theme-indicator');
+      if (ind) ind.textContent = name;
+    };'''
+pos = runtime_js.rfind('go(idx);')
+if pos >= 0:
+    insert_at = pos + len('go(idx);')
+    runtime_js = runtime_js[:insert_at] + '\n' + override_js + runtime_js[insert_at:]
 else:
-    print("Error: runtime.js does not end with '})();' — cannot inject applyTheme override", file=sys.stderr)
+    print("Error: cannot find 'go(idx);' in runtime.js — cannot inject applyTheme override", file=sys.stderr)
     sys.exit(1)
 
 html = inline_script(html, "runtime.js", runtime_js)
