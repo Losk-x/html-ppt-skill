@@ -90,6 +90,11 @@ active_theme_css = theme_data.get(current_theme, theme_data.get("tokyo-night", "
 combined_css = base_css + "\n" + active_theme_css + "\n" + anim_css
 
 # Inline runtime.js and fx-runtime.js FIRST (before removal loop)
+# Use data URIs instead of direct inlining to avoid HTML parser issues:
+# runtime.js contains "</script>" and "<script>" inside JS strings (presenter
+# HTML builder), which can prematurely close/open <script> tags when inlined.
+import base64
+
 def inline_script(html, keyword, content):
     pat = re.compile(
         rf'(<script\s+[^>]*src=(["\'])[^"\'"]*{re.escape(keyword)}[^"\'"]*\2[^>]*>)'
@@ -97,6 +102,17 @@ def inline_script(html, keyword, content):
         re.IGNORECASE | re.DOTALL
     )
     return pat.sub(lambda m: f"<script>{content}</script>", html)
+
+def inline_script_data_uri(html, keyword, content):
+    """Replace external <script src="...keyword..."> with base64 data URI.
+    Avoids HTML parser issues when JS contains </script> or <script strings."""
+    b64 = base64.b64encode(content.encode('utf-8')).decode('ascii')
+    data_uri = f'<script src="data:text/javascript;base64,{b64}"></script>'
+    pat = re.compile(
+        rf'<script\s+[^>]*src=(["\'])[^"\'"]*{re.escape(keyword)}[^"\'"]*\1[^>]*>\s*</script>',
+        re.IGNORECASE
+    )
+    return pat.sub(data_uri, html)
 
 # Inject applyTheme override inside the ready() callback, right after the final
 # go(idx); call and before the closing }). Use a sentinel comment marker first;
@@ -127,9 +143,9 @@ else:
     print("Error: cannot find injection point in runtime.js — cannot inject applyTheme override", file=sys.stderr)
     sys.exit(1)
 
-html = inline_script(html, "runtime.js", runtime_js)
+html = inline_script_data_uri(html, "runtime.js", runtime_js)
 if fx_runtime_js:
-    html = inline_script(html, "fx-runtime.js", fx_runtime_js)
+    html = inline_script_data_uri(html, "fx-runtime.js", fx_runtime_js)
 
 # Remove remaining external CSS/JS link/script tags
 QUOT = """["']"""
