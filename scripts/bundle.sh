@@ -55,11 +55,8 @@ runtime_js = read_file(f"{skill}/assets/runtime.js", "runtime.js")
 fx_runtime_path = f"{skill}/assets/animations/fx-runtime.js"
 fx_runtime_js = ""
 if os.path.exists(fx_runtime_path):
-    try:
-        with open(fx_runtime_path) as f:
-            fx_runtime_js = f.read()
-    except FileNotFoundError:
-        print(f"Warning: fx-runtime.js not found, skipping", file=sys.stderr)
+    with open(fx_runtime_path) as f:
+        fx_runtime_js = f.read()
 
 # Read ALL theme CSS files — inline them so no external loading is needed
 theme_data = {}
@@ -102,8 +99,8 @@ def inline_script(html, keyword, content):
     return pat.sub(lambda m: f"<script>{content}</script>", html)
 
 # Inject applyTheme override inside the ready() callback, right after the final
-# go(idx); call and before the closing });. This ensures root and applyTheme
-# are in scope. go(idx); is unique — it only appears at the initialization call.
+# go(idx); call and before the closing }). Use a sentinel comment marker first;
+# fall back to searching for go(idx); for backward compatibility.
 override_js = '''
     applyTheme = function(name) {
       let style = document.getElementById('theme-style');
@@ -118,12 +115,16 @@ override_js = '''
       const ind = document.querySelector('.theme-indicator');
       if (ind) ind.textContent = name;
     };'''
-pos = runtime_js.rfind('go(idx);')
+pos = runtime_js.find('/* @bundle-inject-point */')
+if pos < 0:
+    pos = runtime_js.rfind('go(idx);')
 if pos >= 0:
-    insert_at = pos + len('go(idx);')
-    runtime_js = runtime_js[:insert_at] + '\n' + override_js + runtime_js[insert_at:]
+    line_end = runtime_js.find('\n', pos)
+    if line_end < 0:
+        line_end = len(runtime_js)
+    runtime_js = runtime_js[:line_end] + '\n' + override_js + runtime_js[line_end:]
 else:
-    print("Error: cannot find 'go(idx);' in runtime.js — cannot inject applyTheme override", file=sys.stderr)
+    print("Error: cannot find injection point in runtime.js — cannot inject applyTheme override", file=sys.stderr)
     sys.exit(1)
 
 html = inline_script(html, "runtime.js", runtime_js)
