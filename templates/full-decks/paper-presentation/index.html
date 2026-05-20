@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paper Title · Conference / Venue</title>
+<link rel="stylesheet" href="../../../assets/fonts.css">
+<link rel="stylesheet" href="../../../assets/base.css">
+<link rel="stylesheet" id="theme-link" href="../../../assets/themes/academic-paper.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="tpl-paper-presentation" data-theme="academic-paper" data-themes="academic-paper,editorial-serif,minimal-white,engineering-whiteprint,corporate-clean" data-theme-base="../../../assets/themes/">
+<div class="deck">
+
+  <!-- 1. Cover -->
+  <section class="slide is-active">
+    <div class="kicker">Venue · Year</div>
+    <h1 class="h1">Paper <span style="color:var(--accent)">Title</span><br>Goes Here</h1>
+    <p class="lede" style="margin-top:16px;font-size:22px">A concise subtitle or one-sentence summary of the core contribution.<br>— Keep it under two lines for maximum impact.</p>
+    <div class="row" style="margin-top:28px;gap:14px">
+      <div style="width:48px;height:48px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:20px">AB</div>
+      <div><b style="display:block;font-size:18px">A. First, B. Second, C. Third</b><span class="dim2" style="font-size:13px;font-family:var(--font-mono)">affiliation@university.edu</span></div>
+    </div>
+    <div class="deck-footer"><span class="mono">#keyword1 #keyword2 #keyword3</span><span class="slide-number" data-current="1" data-total="11"></span></div>
+  </section>
+
+  <!-- 2. Motivation -->
+  <section class="slide">
+    <div class="kicker">Background · Motivation</div>
+    <h2 class="h2">The <span style="color:var(--accent)">Problem</span> Statement</h2>
+    <div class="grid g2" style="margin-top:24px">
+      <div>
+        <div class="card card-accent" style="margin-bottom:14px">
+          <h4>Prior Approach</h4>
+          <p class="dim" style="font-size:17px">Describe the existing solution and why it was sufficient in the past. What assumptions held then that no longer do?</p>
+        </div>
+        <div class="card card-accent" style="margin-bottom:14px">
+          <h4>New Challenges</h4>
+          <p class="dim" style="font-size:17px">What changed? New hardware, larger scale, different workloads? Why does the old approach break down? Quantify if possible.</p>
+        </div>
+        <div class="card card-accent">
+          <h4>Existing Alternatives &amp; Their Limits</h4>
+          <p class="dim" style="font-size:17px"><b style="color:var(--text-1)">Option A</b>: pro + con. <b style="color:var(--text-1)">Option B</b>: pro + con. Where is the gap this paper fills?</p>
+        </div>
+      </div>
+      <div>
+        <div class="card card-outline" style="height:320px;display:flex;align-items:center;justify-content:center">
+          <p class="dim2" style="font-size:18px;text-align:center">▲ Figure 1<br>Replace with your overview figure.<br>Use <span class="mono">class="img-framed"</span> on &lt;img&gt;.</p>
+        </div>
+        <div class="callout" style="margin-top:18px;font-size:16px"><b>Core Claim:</b> One sentence that captures the paper's central insight. This is what the audience should remember.</div>
+      </div>
+    </div>
+    <div class="deck-footer"><span>Background · Motivation</span><span class="slide-number" data-current="2" data-total="11"></span></div>
+  </section>
+
+  <!-- 3. Background / Preliminaries -->
+  <section class="slide">
+    <div class="kicker">Background · Preliminaries</div>
+    <h2 class="h2">Key <span style="color:var(--accent)">Concepts</span> to Understand</h2>
+    <div class="grid g2" style="margin-top:24px">
+      <div>
+        <div class="card card-outline" style="height:260px;display:flex;align-items:center;justify-content:center">
+          <p class="dim2" style="font-size:18px;text-align:center">▲ Figure 2<br>Illustrate the core data structure<br>or system architecture here.</p>
+        </div>
+      </div>
+      <div>
+        <div class="card card-accent" style="margin-bottom:14px">
+          <h4>Concept One</h4>
+          <p class="dim" style="font-size:17px">Explain the first prerequisite concept. Why is it relevant? What property does it have that the paper exploits?</p>
+        </div>
+        <div class="card card-accent" style="margin-bottom:14px">
+          <h4>Concept Two</h4>
+          <p class="dim" style="font-size:17px">Explain the second prerequisite. Connect it to the problem statement from the previous slide.</p>
+        </div>
+        <div class="card card-accent" style="margin-bottom:14px">
+          <h4>Key Property</h4>
+          <p class="dim" style="font-size:17px">One critical property that makes the paper's approach feasible. This is the "why now" or "why this works" insight.</p>
+        </div>
+        <div class="tag-row">
+          <span class="pill">Property A</span>
+          <span class="pill">Property B</span>
+          <span class="pill">Property C</span>
+        </div>
+      </div>
+    </div>
+    <div class="deck-footer"><span>Background · Preliminaries</span><span class="slide-number" data-current="3" data-total="11"></span></div>
+  </section>
+
+  <!-- 4. Approach / Protocol 1 -->
+  <section class="slide">
+    <div class="kicker">Approach · Protocol I</div>
+    <h2 class="h2">Core <span style="color:var(--accent)">Technique</span> Explained</h2>
+    <div class="grid g2" style="margin-top:24px;align-items:start">
+      <div>
+        <p class="lede" style="font-size:19px;margin-bottom:14px">Core idea in one sentence: <b style="color:var(--text-1)">what is the key insight</b> that makes this technique work? State it clearly before showing code.</p>
+        <div class="code-sm">
+<span class="c1">// Skeleton of the core algorithm</span>
+<span class="kw">struct</span> <span class="fn">KeyDataType</span> {
+    <span class="c1">// Fields that embody the technique</span>
+    std::atomic&lt;<span class="kw">uint64_t</span>&gt; state;
+};
+
+<span class="kw">Result</span> <span class="fn">coreOperation</span>(Input* in) {
+    <span class="kw">auto</span> snapshot = in-&gt;state.load();
+    <span class="c1">// Optimistic / critical path logic</span>
+    <span class="kw">if</span> (!validate(snapshot)) <span class="kw">retry</span>();
+    <span class="kw">return</span> compute(snapshot);
+}</div>
+      </div>
+      <div>
+        <div class="card card-accent" style="margin-bottom:14px">
+          <h4>How It Differs from Baseline</h4>
+          <p class="dim" style="font-size:17px">Compare with the naive or prior approach. What specifically changes? Why does this change matter for performance/correctness?</p>
+        </div>
+        <div class="card card-accent" style="margin-bottom:14px">
+          <h4>Why It Scales</h4>
+          <p class="dim" style="font-size:17px">Explain the mechanism: fewer writes? better cache behavior? reduced contention? Tie to a concrete hardware effect.</p>
+        </div>
+        <div class="card card-accent" style="margin-bottom:14px">
+          <h4>When It Still Blocks</h4>
+          <p class="dim" style="font-size:17px">Honest about limitations. Under what conditions does the technique degrade? What fallback exists?</p>
+        </div>
+        <div class="row" style="justify-content:space-around">
+          <div style="text-align:center"><span class="num-stat">+XX%</span><p class="dim2" style="font-size:12px;margin-top:4px">single-thread overhead</p></div>
+          <div style="text-align:center"><span class="num-stat" style="color:var(--good)">+YY%</span><p class="dim2" style="font-size:12px;margin-top:4px">at N threads</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="deck-footer"><span>Approach · Protocol I</span><span class="slide-number" data-current="4" data-total="11"></span></div>
+  </section>
+
+  <!-- 5. Safety / Correctness -->
+  <section class="slide">
+    <div class="kicker">Approach · Correctness</div>
+    <h2 class="h2"><span style="color:var(--accent)">Three</span> Requirements for Safety</h2>
+    <div class="grid g3" style="margin-top:32px">
+      <div class="card card-accent">
+        <h4 style="font-family:var(--font-serif)">① Liveness</h4>
+        <p class="dim" style="font-size:17px">Can the algorithm get stuck in an infinite loop? Under what conditions? How is forward progress guaranteed?</p>
+      </div>
+      <div class="card card-accent">
+        <h4 style="font-family:var(--font-serif)">② Memory Safety</h4>
+        <p class="dim" style="font-size:17px">Can a concurrent reader dereference freed memory? What guards are needed before pointer dereference?</p>
+      </div>
+      <div class="card card-accent">
+        <h4 style="font-family:var(--font-serif)">③ Reclamation</h4>
+        <p class="dim" style="font-size:17px">How are deleted nodes/objects reclaimed without disrupting active readers? Epoch-based? RCU? Hazard pointers?</p>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:20px">
+      <div class="callout" style="font-size:16px"><b style="color:var(--accent)">Forward Progress:</b> How the algorithm guarantees it won't livelock. E.g., bounded retries, fallback to stronger synchronization.</div>
+      <div class="callout" style="font-size:16px"><b style="color:var(--accent)">Testing Strategy:</b> How correctness was validated. Model checking? Stress testing? Formal verification?</div>
+    </div>
+    <div class="deck-footer"><span>Approach · Correctness</span><span class="slide-number" data-current="5" data-total="11"></span></div>
+  </section>
+
+  <!-- 6. Approach / Protocol 2 -->
+  <section class="slide">
+    <div class="kicker">Approach · Protocol II</div>
+    <h2 class="h2">A <span style="color:var(--accent)">Stronger</span> Guarantee</h2>
+    <div class="grid g2" style="margin-top:24px">
+      <div>
+        <p class="lede" style="font-size:19px;margin-bottom:16px">Protocol I's limitation: <b style="color:var(--accent-3)">what breaks under stress</b>. Protocol II addresses this with a different trade-off.</p>
+        <table class="table-cmp">
+          <tr><th></th><th>Protocol I</th><th>Protocol II</th></tr>
+          <tr><td>Reader behavior</td><td>Snapshot → Read → Validate</td><td class="hi">Direct read, zero overhead</td></tr>
+          <tr><td>Writer behavior</td><td>Lock + increment version</td><td>Local lock + atomic ops</td></tr>
+          <tr><td>Code change</td><td class="hi">Minimal</td><td>Requires internal changes</td></tr>
+          <tr><td>Under contention</td><td style="color:var(--accent-3)">Degrades</td><td class="hi">Stays flat</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="card card-accent" style="margin-bottom:14px">
+          <h4>Core Trade-off</h4>
+          <p class="dim" style="font-size:17px">In Protocol II, <b style="color:var(--text-1)">writers take on the burden</b> of ensuring reader consistency. Instead of detecting conflicts (Protocol I), writers prevent them.</p>
+        </div>
+        <div class="card card-accent" style="margin-bottom:14px">
+          <h4>Comparison to Lock-Free</h4>
+          <p class="dim" style="font-size:17px">Easier than full lock-free because writers <b style="color:var(--text-1)">can use locks</b> (just not against readers). More leverage than CAS-only designs.</p>
+        </div>
+        <div class="callout" style="font-size:16px"><b style="color:var(--accent)">Best For:</b> Read-heavy workloads under high contention. When readers must never wait.</div>
+      </div>
+    </div>
+    <div class="deck-footer"><span>Approach · Protocol II</span><span class="slide-number" data-current="6" data-total="11"></span></div>
+  </section>
+
+  <!-- 7. Implementation Details -->
+  <section class="slide">
+    <div class="kicker">Approach · Implementation</div>
+    <h2 class="h2">Making the <span style="color:var(--accent)">Data Structure</span> Safe</h2>
+    <div class="grid g2" style="margin-top:24px">
+      <div>
+        <div class="card card-accent" style="margin-bottom:14px">
+          <h4>Local Modifications: Atomic Everywhere</h4>
+          <p class="dim" style="font-size:17px">All fields visible to readers must be <span class="mono">std::atomic</span>. On x86, atomic loads add <b style="color:var(--text-1)">zero extra instructions</b> — only prevent compiler reordering.</p>
+        </div>
+        <div class="card card-accent" style="margin-bottom:14px">
+          <h4>Structural Changes (N-step protocol)</h4>
+          <ol style="padding-left:24px;font-size:17px;line-height:2.1;color:var(--text-1);margin:0">
+            <li>Acquire necessary locks (node + parent)</li>
+            <li>Prepare new version off-critical-path</li>
+            <li>Atomic pointer swing to install</li>
+            <li>Mark old version obsolete, release locks</li>
+          </ol>
+        </div>
+      </div>
+      <div>
+        <div class="card card-accent" style="margin-bottom:14px">
+          <h4>Tricky Case: Multi-step Operations</h4>
+          <p class="dim" style="font-size:17px">When a structural change can't be done atomically, readers may see intermediate states. Solution: add an immutable field (set at creation time) readers can use to self-correct.</p>
+        </div>
+        <div class="card card-accent" style="margin-bottom:12px">
+          <h4>Implementation Detail</h4>
+          <p class="dim" style="font-size:17px">Pack related fields into a single machine word to enable one atomic store. Trade-off: slightly reduced capacity for stronger consistency.</p>
+        </div>
+        <div class="tag-row">
+          <span class="pill pill-accent">+XX bytes/node (Protocol II)</span>
+          <span class="pill">+YY bytes (Protocol I)</span>
+          <span class="pill">+ZZ bytes (baseline)</span>
+        </div>
+      </div>
+    </div>
+    <div class="deck-footer"><span>Approach · Implementation</span><span class="slide-number" data-current="7" data-total="11"></span></div>
+  </section>
+
+  <!-- 8. Evaluation — Primary result -->
+  <section class="slide">
+    <div class="kicker">Evaluation · Scalability</div>
+    <h2 class="h2"><span style="color:var(--accent)">Scalability</span>: Near-linear up to N cores</h2>
+    <div style="margin-top:20px">
+      <div class="card card-outline" style="height:340px;display:flex;align-items:center;justify-content:center">
+        <p class="dim2" style="font-size:20px;text-align:center">▲ Figure 5: Scalability chart<br>Show throughput (y-axis) vs thread count (x-axis)<br>Multiple lines: baseline, Protocol I, Protocol II, competitor</p>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:24px">
+      <div class="callout" style="font-size:16px"><b style="color:var(--accent)">Key Data:</b> At N threads: baseline drops to X ops/s. Protocol I achieves Y ops/s (Z% of unsynchronized). Protocol II achieves W ops/s.</div>
+      <div class="callout" style="font-size:16px"><b style="color:var(--accent)">Overhead:</b> Protocol I +A bytes/node, Protocol II +B bytes/node. Competitor comparison: 2× faster on integer keys.</div>
+    </div>
+    <div class="deck-footer"><span>Evaluation · Scalability</span><span class="slide-number" data-current="8" data-total="11"></span></div>
+  </section>
+
+  <!-- 9. Evaluation — Secondary results -->
+  <section class="slide">
+    <div class="kicker">Evaluation · Contention &amp; Real Data</div>
+    <h2 class="h2"><span style="color:var(--accent)">Protocol II</span> Excels Under Stress</h2>
+    <div class="grid g2" style="margin-top:20px;align-items:start">
+      <div>
+        <div class="card card-outline" style="height:260px;display:flex;align-items:center;justify-content:center">
+          <p class="dim2" style="font-size:16px;text-align:center">▲ Figure 6: Contention experiment<br>(varying skew / conflict rate)</p>
+        </div>
+      </div>
+      <div>
+        <div class="card card-outline" style="height:260px;display:flex;align-items:center;justify-content:center">
+          <p class="dim2" style="font-size:16px;text-align:center">▲ Figure 7: Real-world datasets<br>(string / variable-length keys)</p>
+        </div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="callout" style="font-size:16px"><b style="color:var(--accent)">Contention:</b> At high skew (80%+ same key), Protocol II throughput stays flat at X ops/s. Protocol I drops to Y ops/s. Baseline collapses to Z ops/s.</div>
+      <div class="callout" style="font-size:16px"><b style="color:var(--accent)">Real Data:</b> Tested on 3 datasets (small/medium/large). Both protocols close to unsynchronized. Competitor closes gap with longer keys but still trails.</div>
+    </div>
+    <div class="deck-footer"><span>Evaluation · Contention &amp; Real Data</span><span class="slide-number" data-current="9" data-total="11"></span></div>
+  </section>
+
+  <!-- 10. Complexity & Related Work -->
+  <section class="slide">
+    <div class="kicker">Discussion · Complexity</div>
+    <h2 class="h2">Code <span style="color:var(--accent)">Complexity</span> &amp; Related Work</h2>
+    <div class="grid g2" style="margin-top:24px">
+      <div>
+        <table class="table-cmp" style="font-size:17px">
+          <tr><th>Variant</th><th>Op A</th><th>Op B</th><th>Op C</th></tr>
+          <tr><td>No sync</td><td>AA</td><td>BB</td><td>CC</td></tr>
+          <tr><td>HW assist</td><td>AA+1</td><td>BB+1</td><td>CC+1</td></tr>
+          <tr><td>Baseline lock</td><td>AA+12</td><td>BB+41</td><td>CC+52</td></tr>
+          <tr class="row-hi"><td class="hi">Protocol I ★</td><td class="hi">AA+15</td><td class="hi">BB+53</td><td class="hi">CC+56</td></tr>
+          <tr><td>Protocol II</td><td>AA+5</td><td>BB+105</td><td>CC+69</td></tr>
+        </table>
+        <p class="dim2" style="font-size:12px;margin-top:8px">▲ Core algorithmic LOC (excluding lock impl, GC, comments, blank lines). Protocol II's actual complexity is understated — the protocol is quite subtle.</p>
+      </div>
+      <div>
+        <div class="card card-accent" style="margin-bottom:10px">
+          <h4>Prior System A [Year]</h4>
+          <p class="dim" style="font-size:16px">Description of the closest prior system, its approach, and how this paper differs or improves upon it.</p>
+        </div>
+        <div class="card card-accent" style="margin-bottom:10px">
+          <h4>Prior System B [Year]</h4>
+          <p class="dim" style="font-size:16px">Another related system. What design decisions did it make? How does the paper's approach compare quantitatively?</p>
+        </div>
+        <div class="card card-accent" style="margin-bottom:10px">
+          <h4>Earlier Technique [Year]</h4>
+          <p class="dim" style="font-size:16px">A precursor that introduced a similar idea but in a narrower context. This paper generalizes the technique.</p>
+        </div>
+        <div class="card card-accent">
+          <h4>HW-Assisted Approach</h4>
+          <p class="dim" style="font-size:16px">Nearly zero code change (AA vs AA+1 lines), but requires specific hardware support and degrades under high contention.</p>
+        </div>
+      </div>
+    </div>
+    <div class="deck-footer"><span>Discussion · Complexity</span><span class="slide-number" data-current="10" data-total="11"></span></div>
+  </section>
+
+  <!-- 11. Summary -->
+  <section class="slide center">
+    <div style="max-width:920px">
+      <div class="kicker" style="text-align:left">Conclusions</div>
+      <h2 class="h2">The <span style="color:var(--accent)">Takeaway</span></h2>
+      <div class="grid g3" style="margin-top:36px;text-align:left">
+        <div class="card card-accent">
+          <h4 style="font-family:var(--font-serif)">① Protocol I</h4>
+          <p class="dim" style="font-size:17px">Key technique. Minimal code change (~NN lines). Near-optimal scalability when conflicts are rare. Use by default.</p>
+        </div>
+        <div class="card card-accent">
+          <h4 style="font-family:var(--font-serif)">② Protocol II</h4>
+          <p class="dim" style="font-size:17px">Readers never block. Writers use local locks + atomics. Worth the extra code when reads must never wait.</p>
+        </div>
+        <div class="card card-accent">
+          <h4 style="font-family:var(--font-serif)">③ General Principle</h4>
+          <p class="dim" style="font-size:17px">Not specific to one data structure. Apply to B-trees, search trees, hash tables. Pragmatic middle ground between locking and lock-free.</p>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:22px;font-size:17px;text-align:left">
+        <b>The real enemy isn't X — it's Y.</b> Both protocols eliminate Y for readers. Pick Protocol I for simplicity, Protocol II when reads must never wait. Don't abandon X — use it sparingly and deliberately.
+      </div>
+      <p class="dim2" style="font-size:14px;margin-top:24px">Venue · Year · doi:XX.XXXX/XXXXXXX · Affiliation</p>
+    </div>
+    <div class="deck-footer"><span>Conclusions</span><span class="slide-number" data-current="11" data-total="11"></span></div>
+  </section>
+
+</div>
+<script src="../../../assets/runtime.js"></script>
+</body></html>
