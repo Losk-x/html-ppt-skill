@@ -36,7 +36,10 @@ OUT_ABS="$(cd "$(dirname "$OUT")" && pwd)/$(basename "$OUT")"
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 
 # Temp bundle — use mktemp to avoid race conditions on concurrent runs
-BUNDLE="$(mktemp /tmp/html-ppt-bundle.XXXXXX.html)"
+# macOS (BSD) mktemp requires X's at the very end of the template
+BUNDLE_TMP="$(mktemp /tmp/html-ppt-bundle.XXXXXXXX)"
+BUNDLE="${BUNDLE_TMP}.html"
+mv "$BUNDLE_TMP" "$BUNDLE"
 cleanup() { rm -f "$BUNDLE"; }
 trap cleanup EXIT
 

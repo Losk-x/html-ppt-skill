@@ -103,16 +103,16 @@ def inline_script(html, keyword, content):
 # fall back to searching for go(idx); for backward compatibility.
 override_js = '''
     applyTheme = function(name) {
-      let style = document.getElementById('theme-style');
+      var style = document.getElementById('theme-style');
       if (!style) {
         style = document.createElement('style');
         style.id = 'theme-style';
         document.head.appendChild(style);
       }
-      const data = window.__htmlPptThemeData || {};
+      var data = window.__htmlPptThemeData || {};
       style.textContent = data[name] || '';
       root.setAttribute('data-theme', name);
-      const ind = document.querySelector('.theme-indicator');
+      var ind = document.querySelector('.theme-indicator');
       if (ind) ind.textContent = name;
     };'''
 pos = runtime_js.find('/* @bundle-inject-point */')
